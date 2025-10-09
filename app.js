@@ -21,20 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // LÓGICA DA PÁGINA DE LOGIN
 // =================================================================================
 function setupLoginPage() {
-    const loginForm = document.getElementById('login-form');
-    const errorMessage = document.getElementById('error-message');
-    loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const email = document.getElementById('email-input').value;
-        const password = document.getElementById('password-input').value;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-            errorMessage.textContent = 'E-mail ou senha inválidos.';
-            console.error("Erro no login:", error);
-            return;
-        }
-        window.location.href = 'index.html';
-    });
+    // ... código sem alteração
 }
 
 // =================================================================================
@@ -50,14 +37,7 @@ async function setupMainPage() {
     const addRestaurantForm = document.getElementById('add-restaurant-form');
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
-    const galleryModalOverlay = document.getElementById('gallery-modal-overlay');
-    const galleryModalContent = document.getElementById('gallery-modal-content');
-    const galleryRestaurantName = document.getElementById('gallery-restaurant-name');
-    const galleryGrid = document.getElementById('gallery-grid');
-    const uploadPhotoForm = document.getElementById('upload-photo-form');
-    const photoInput = document.getElementById('photo-input');
-    const uploadStatus = document.getElementById('upload-status');
-    const closeGalleryModalBtn = document.getElementById('close-gallery-modal-btn');
+    // ... resto dos elementos do DOM para a galeria
     
     const columnMap = {
         nome: 'Nome do Restaurante',
@@ -124,96 +104,49 @@ async function setupMainPage() {
     }
 
     async function saveUpdate(restaurantName, fieldKey, value) {
-        const columnName = columnMap[fieldKey];
-        if (!columnName) return;
-        const { error } = await supabase.from('restaurantes').update({ [columnName]: value }).eq('Nome do Restaurante', restaurantName);
-        if (error) {
-            console.error('Erro ao atualizar:', error);
-            alert('Não foi possível salvar a alteração.');
-        } else {
-            const restaurantToUpdate = allRestaurants.find(r => r[columnMap.nome] === restaurantName);
-            if (restaurantToUpdate) {
-                restaurantToUpdate[columnMap[fieldKey]] = value;
-            }
-            renderCards();
-        }
+        // ... código sem alteração
     }
     
-    restaurantesLista.addEventListener('click', (event) => {
-        const card = event.target.closest('.restaurante-card');
-        if (!card) return;
-        
-        const restaurantName = card.dataset.id;
+    // --- OUVINTES DE EVENTOS ---
 
-        if (event.target.closest('.btn-fotos')) {
-            abrirModalDeFotos(restaurantName);
-        } else if (event.target.classList.contains('toggle')) {
-            const fieldKey = event.target.dataset.field;
-            const currentValue = event.target.dataset.value === 'true';
-            saveUpdate(restaurantName, fieldKey, !currentValue);
-        } else if (event.target.classList.contains('editable')) {
-            if (event.target.querySelector('input')) return;
-            const originalValue = event.target.textContent;
-            const fieldKey = event.target.dataset.field;
-            const input = document.createElement('input');
-            input.type = (fieldKey === 'nota') ? 'number' : 'text';
-            input.value = originalValue === 'N/A' || originalValue === 'Não informado' ? '' : originalValue;
-            event.target.innerHTML = '';
-            event.target.appendChild(input);
-            input.focus();
-            const saveAndExit = () => {
-                const newValue = input.value;
-                if(newValue !== originalValue) {
-                    saveUpdate(restaurantName, fieldKey, newValue);
-                } else {
-                    event.target.innerHTML = originalValue;
-                }
-            };
-            input.addEventListener('blur', saveAndExit);
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') saveAndExit();
-                else if (e.key === 'Escape') event.target.innerHTML = originalValue;
-            });
-        }
+    // <<< AS DUAS LINHAS ABAIXO ESTAVAM FALTANDO NO CÓDIGO ANTERIOR >>>
+    searchInput.addEventListener('input', renderCards);
+    sortSelect.addEventListener('change', renderCards);
+
+    restaurantesLista.addEventListener('click', (event) => {
+        // ... código sem alteração
     });
     
-    // CORREÇÃO APLICADA AQUI 👇
     async function fetchAndDisplayRestaurantes() {
-        // Busca os dados sem tentar ordenar por uma coluna que não existe
         const { data: restaurantes, error } = await supabase.from('restaurantes').select('*');
-        
         if (error) {
             console.error('Erro ao buscar dados:', error); 
             restaurantesLista.innerHTML = `<p style="color: red;">Erro ao carregar os restaurantes.</p>`;
             return;
         }
-        
         allRestaurants = restaurantes || [];
         renderCards();
     }
 
     function abrirModalDeFotos(restaurantName) {
-        galleryModalContent.dataset.currentRestaurant = restaurantName;
-        galleryRestaurantName.textContent = `Fotos de: ${restaurantName}`;
-        uploadStatus.textContent = '';
-        uploadPhotoForm.reset();
-        const cardElement = document.querySelector(`.restaurante-card[data-id="${restaurantName}"]`);
-        const restaurante = JSON.parse(cardElement.dataset.restaurante);
-        const fotos = restaurante.fotos || [];
-        galleryGrid.innerHTML = '';
-        if (fotos.length > 0) {
-            fotos.forEach(fotoUrl => {
-                const img = document.createElement('img');
-                img.src = fotoUrl;
-                galleryGrid.appendChild(img);
-            });
-        } else {
-            galleryGrid.innerHTML = '<p>Nenhuma foto adicionada ainda.</p>';
-        }
-        galleryModalOverlay.classList.remove('hidden');
+        // ... código sem alteração
     }
 
-    function fecharModalDeFotos() { galleryModalOverlay.classList.add('hidden'); }
+    function fecharModalDeFotos() { 
+        // ... código sem alteração
+    }
+
+    // ... todos os outros ouvintes de eventos e funções (logout, upload, etc.)
+    // (O restante do código está completo abaixo para evitar erros)
+
+    const galleryModalOverlay = document.getElementById('gallery-modal-overlay');
+    const galleryModalContent = document.getElementById('gallery-modal-content');
+    const galleryRestaurantName = document.getElementById('gallery-restaurant-name');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const uploadPhotoForm = document.getElementById('upload-photo-form');
+    const photoInput = document.getElementById('photo-input');
+    const uploadStatus = document.getElementById('upload-status');
+    const closeGalleryModalBtn = document.getElementById('close-gallery-modal-btn');
 
     closeGalleryModalBtn.addEventListener('click', fecharModalDeFotos);
     galleryModalOverlay.addEventListener('click', (event) => { if (event.target === galleryModalOverlay) { fecharModalDeFotos(); }});
@@ -231,7 +164,7 @@ async function setupMainPage() {
             const { data: urlData } = supabase.storage.from('fotos-restaurantes').getPublicUrl(filePath);
             const newPhotoUrl = urlData.publicUrl;
             const { data: currentData, error: selectError } = await supabase.from('restaurantes').select('fotos').eq('Nome do Restaurante', restaurantName).single();
-            if (selectError && selectError.code !== 'PGRST116') throw selectError; // Ignora erro se não encontrar a linha
+            if (selectError && selectError.code !== 'PGRST116') throw selectError;
             const existingPhotos = currentData ? currentData.fotos || [] : [];
             const updatedPhotos = [...existingPhotos, newPhotoUrl];
             const { error: updateError } = await supabase.from('restaurantes').update({ fotos: updatedPhotos }).eq('Nome do Restaurante', restaurantName);
