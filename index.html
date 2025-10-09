@@ -44,6 +44,22 @@
         </main>
     </div>
 
+    <div id="gallery-modal-overlay" class="hidden">
+    <div id="gallery-modal-content">
+        <h2 id="gallery-restaurant-name">Fotos do Restaurante</h2>
+        <div id="gallery-grid">
+            </div>
+        <hr>
+        <h3>Adicionar Nova Foto</h3>
+        <form id="upload-photo-form">
+            <input type="file" id="photo-input" accept="image/*" required>
+            <button type="submit">Enviar Foto</button>
+            <p id="upload-status"></p>
+        </form>
+        <button id="close-gallery-modal-btn" class="close-btn">&times;</button>
+    </div>
+</div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
