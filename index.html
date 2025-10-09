@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seu Roteiro Gastronômico</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+</head>
+<body class="app-page">
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-utensils"></i>
+                <h1>Seu Roteiro</h1>
+            </div>
+            <div class="header-actions">
+                <button id="logout-button" title="Sair"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </header>
+
+        <main>
+            <details class="add-restaurant-section">
+                <summary>
+                    <h2><i class="fa-solid fa-plus"></i> Adicionar novo restaurante</h2>
+                </summary>
+                <form id="add-restaurant-form">
+                    <input type="text" id="res-nome" placeholder="Nome do Restaurante" required>
+                    <input type="text" id="res-cozinha" placeholder="Tipo de Cozinha">
+                    <input type="text" id="res-preco" placeholder="Faixa de Preço (Ex: $$)">
+                    <input type="text" id="res-localizacao" placeholder="Endereço ou Link do Maps">
+                    <input type="url" id="res-instagram" placeholder="Link do Instagram">
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" id="res-vr"> Aceita VR?</label>
+                    </div>
+                    <button type="submit">Adicionar à Lista</button>
+                </form>
+            </details>
+
+            <div id="restaurantes-lista">
+                </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
