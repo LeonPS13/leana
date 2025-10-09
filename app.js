@@ -133,7 +133,6 @@ async function setupMainPage() {
         } else {
             const restaurantToUpdate = allRestaurants.find(r => r[columnMap.nome] === restaurantName);
             if (restaurantToUpdate) {
-                // Se a coluna for booleana, o 'value' vem como boolean. Se não, é string.
                 restaurantToUpdate[columnMap[fieldKey]] = value;
             }
             renderCards();
@@ -178,26 +177,18 @@ async function setupMainPage() {
         }
     });
     
+    // CORREÇÃO APLICADA AQUI 👇
     async function fetchAndDisplayRestaurantes() {
-        // Tentamos ordenar por created_at (se a coluna existir)
-        const { data: restaurantes, error } = await supabase.from('restaurantes').select('*').order('created_at', { ascending: false });
-        if (error && error.message.includes('column "restaurantes.created_at" does not exist')) {
-            // Se a coluna não existe, busca sem ordenar
-            const { data: fallbackData, error: fallbackError } = await supabase.from('restaurantes').select('*');
-            if(fallbackError) {
-                console.error('Erro ao buscar dados (fallback):', fallbackError);
-                restaurantesLista.innerHTML = `<p style="color: red;">Erro ao carregar os restaurantes.</p>`;
-                return;
-            }
-            allRestaurants = fallbackData || [];
-        } else if(error) {
-             console.error('Erro ao buscar dados:', error); 
-             restaurantesLista.innerHTML = `<p style="color: red;">Erro ao carregar os restaurantes.</p>`;
-             return;
+        // Busca os dados sem tentar ordenar por uma coluna que não existe
+        const { data: restaurantes, error } = await supabase.from('restaurantes').select('*');
+        
+        if (error) {
+            console.error('Erro ao buscar dados:', error); 
+            restaurantesLista.innerHTML = `<p style="color: red;">Erro ao carregar os restaurantes.</p>`;
+            return;
         }
-        else {
-            allRestaurants = restaurantes || [];
-        }
+        
+        allRestaurants = restaurantes || [];
         renderCards();
     }
 
@@ -240,8 +231,8 @@ async function setupMainPage() {
             const { data: urlData } = supabase.storage.from('fotos-restaurantes').getPublicUrl(filePath);
             const newPhotoUrl = urlData.publicUrl;
             const { data: currentData, error: selectError } = await supabase.from('restaurantes').select('fotos').eq('Nome do Restaurante', restaurantName).single();
-            if (selectError) throw selectError;
-            const existingPhotos = currentData.fotos || [];
+            if (selectError && selectError.code !== 'PGRST116') throw selectError; // Ignora erro se não encontrar a linha
+            const existingPhotos = currentData ? currentData.fotos || [] : [];
             const updatedPhotos = [...existingPhotos, newPhotoUrl];
             const { error: updateError } = await supabase.from('restaurantes').update({ fotos: updatedPhotos }).eq('Nome do Restaurante', restaurantName);
             if (updateError) throw updateError;
