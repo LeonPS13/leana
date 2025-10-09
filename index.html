@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seu Roteiro Gastronômico</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
-    <link rel="icon" type="image/png" href="food.png">
+    
+    <script src="https://kit.fontawesome.com/SEU_CODIGO_UNICO.js" crossorigin="anonymous"></script>
+    
+    <link rel="icon" type="image/png" href="icone.png">
 </head>
 <body class="app-page">
 
@@ -39,26 +41,42 @@
                 </form>
             </details>
 
+            <div class="toolbar">
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="search" id="search-input" placeholder="Buscar por nome...">
+                </div>
+                <div class="sort-wrapper">
+                    <label for="sort-select">Organizar por:</label>
+                    <select id="sort-select">
+                        <option value="default">Mais Recentes</option>
+                        <option value="alfabetica">Ordem Alfabética</option>
+                        <option value="cozinha">Tipo de Cozinha</option>
+                        <option value="visitados">Visitados / Pendentes</option>
+                    </select>
+                </div>
+            </div>
+            
             <div id="restaurantes-lista">
                 </div>
         </main>
     </div>
 
     <div id="gallery-modal-overlay" class="hidden">
-    <div id="gallery-modal-content">
-        <h2 id="gallery-restaurant-name">Fotos do Restaurante</h2>
-        <div id="gallery-grid">
-            </div>
-        <hr>
-        <h3>Adicionar Nova Foto</h3>
-        <form id="upload-photo-form">
-            <input type="file" id="photo-input" accept="image/*" required>
-            <button type="submit">Enviar Foto</button>
-            <p id="upload-status"></p>
-        </form>
-        <button id="close-gallery-modal-btn" class="close-btn">&times;</button>
+        <div id="gallery-modal-content">
+            <h2 id="gallery-restaurant-name">Fotos do Restaurante</h2>
+            <div id="gallery-grid">
+                </div>
+            <hr>
+            <h3>Adicionar Nova Foto</h3>
+            <form id="upload-photo-form">
+                <input type="file" id="photo-input" accept="image/*" required>
+                <button type="submit">Enviar Foto</button>
+                <p id="upload-status"></p>
+            </form>
+            <button id="close-gallery-modal-btn" class="close-btn">&times;</button>
+        </div>
     </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
