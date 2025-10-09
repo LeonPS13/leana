@@ -72,7 +72,7 @@ async function setupMainPage() {
         const columnName = columnMap[fieldKey];
         if (!columnName) return; // Segurança extra
         // No UPDATE, precisamos das aspas duplas para nomes com espaços
-        const { error } = await supabase.from('restaurantes').update({ [`"${columnName}"`]: value }).eq('id', id);
+        const { error } = await supabase.from('restaurantes').update({ [columnName]: value }).eq('id', id);
         if (error) {
             console.error('Erro ao atualizar:', error);
             alert('Não foi possível salvar a alteração.');
