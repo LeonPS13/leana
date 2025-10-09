@@ -23,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // LÓGICA DA PÁGINA DE LOGIN
 // =================================================================================
 function setupLoginPage() {
-    // ... (código inalterado)
     const loginForm = document.getElementById('login-form');
     const errorMessage = document.getElementById('error-message');
     loginForm.addEventListener('submit', async (event) => {
@@ -76,20 +75,17 @@ async function setupMainPage() {
         }
     }
     
-    // OUVINTE DE EVENTOS COM A CORREÇÃO
     restaurantesLista.addEventListener('click', (event) => {
         const target = event.target;
         const card = target.closest('.restaurante-card');
 
-        // GUARDA INTELIGENTE: Se o clique não foi dentro de um card, a função para aqui.
+        // Guarda inteligente: Se o clique não foi dentro de um card, a função para aqui.
         if (!card) {
             return;
         }
         
-        // Se a função continuou, significa que 'card' existe e podemos pegar o nome com segurança.
         const restaurantName = card.dataset.id;
 
-        // Lógica do Toggle (agora segura)
         if (target.classList.contains('toggle')) {
             const fieldKey = target.dataset.field;
             const currentValue = target.dataset.value === 'true';
@@ -100,8 +96,6 @@ async function setupMainPage() {
             target.classList.toggle('toggle-visitado-sim');
             target.classList.toggle('toggle-visitado-nao');
         }
-
-        // Lógica da Edição (agora segura)
         if (target.classList.contains('editable')) {
             if (target.querySelector('input')) return;
             const originalValue = target.textContent;
@@ -125,17 +119,66 @@ async function setupMainPage() {
         }
     });
     
+    // ESTA FUNÇÃO ESTAVA FALTANDO NO CÓDIGO ANTERIOR
     async function fetchAndDisplayRestaurantes() {
-        // ... (código inalterado)
+        const { data: restaurantes, error } = await supabase.from('restaurantes').select('*');
+        if (error) {
+            console.error('Erro ao buscar dados:', error); 
+            restaurantesLista.innerHTML = `<p style="color: red;">Erro ao carregar os restaurantes. Verifique o console (F12) para detalhes.</p>`;
+            return;
+        }
+        restaurantesLista.innerHTML = '';
+        restaurantes.forEach(restaurante => {
+            const card = document.createElement('div');
+            card.classList.add('restaurante-card');
+            card.dataset.id = restaurante['Nome do Restaurante'];
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="editable" data-field="nome">${restaurante[columnMap.nome] || 'Nome não definido'}</h3>
+                </div>
+                <div class="card-body">
+                    <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${restaurante[columnMap.tipo_cozinha] || 'Não informado'}</span></p>
+                    <p><i class="fa-solid fa-dollar-sign"></i> <span class="editable" data-field="faixa_preco">${restaurante[columnMap.faixa_preco] || 'Não informado'}</span></p>
+                    <p><i class="fa-solid fa-star"></i> <span class="editable" data-field="nota">${restaurante[columnMap.nota] || 'N/A'}</span></p>
+                    <p><i class="fa-solid fa-map-marker-alt"></i> <span class="editable" data-field="localizacao">${restaurante[columnMap.localizacao] || 'Não informado'}</span></p>
+                </div>
+                <div class="card-footer">
+                     <span class="toggle" data-field="visitado" data-value="${restaurante[columnMap.visitado]}">${restaurante[columnMap.visitado] ? 'Já Fomos!' : 'Pendente'}</span>
+                     <div class="actions">
+                        <a href="${restaurante[columnMap.instagram] || '#'}" target="_blank" class="social-link" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                     </div>
+                </div>`;
+            restaurantesLista.appendChild(card);
+        });
     }
 
+    // ESTE OUVINTE DE EVENTO TAMBÉM ESTAVA FALTANDO
     addRestaurantForm.addEventListener('submit', async (event) => {
-       // ... (código inalterado)
+        event.preventDefault();
+        const formData = {
+            [columnMap.nome]: document.getElementById('res-nome').value,
+            [columnMap.tipo_cozinha]: document.getElementById('res-cozinha').value,
+            [columnMap.faixa_preco]: document.getElementById('res-preco').value,
+            [columnMap.localizacao]: document.getElementById('res-localizacao').value,
+            [columnMap.instagram]: document.getElementById('res-instagram').value,
+            [columnMap.aceita_vr]: document.getElementById('res-vr').checked,
+        };
+        const { error } = await supabase.from('restaurantes').insert(formData);
+        if (error) {
+            console.error('Erro ao adicionar:', error);
+        } else {
+            addRestaurantForm.reset();
+            addRestaurantForm.parentElement.removeAttribute('open');
+            fetchAndDisplayRestaurantes();
+        }
     });
 
+    // E ESTE OUVINTE DE LOGOUT TAMBÉM ESTAVA FALTANDO
     document.getElementById('logout-button').addEventListener('click', async () => {
-        // ... (código inalterado)
+        await supabase.auth.signOut();
+        window.location.href = 'login.html';
     });
 
+    // A chamada inicial para carregar os dados
     fetchAndDisplayRestaurantes();
 }
