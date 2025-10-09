@@ -269,3 +269,64 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     background-color: var(--bg-main);
     color: var(--color-primary);
 }
+
+/* Adicione este código no final do seu style.css */
+
+/* --- Barra de Ferramentas (Busca e Filtro) --- */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--bg-elements);
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    flex-wrap: wrap; /* Para responsividade */
+    gap: 20px;
+}
+
+.search-wrapper {
+    position: relative;
+    flex-grow: 1; /* Faz a busca ocupar mais espaço */
+    min-width: 250px;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+#search-input {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+}
+#search-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-wrapper label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+#sort-select {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: var(--bg-main);
+}
