@@ -92,7 +92,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 }
 #logout-button:hover { color: var(--color-primary); }
 
-/* Seção de Adicionar Restaurante */
+/* --- Seção de Adicionar Restaurante --- */
 .add-restaurant-section {
     background: var(--bg-elements);
     border-radius: 12px;
@@ -131,7 +131,80 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     grid-column: 1 / -1; /* Botão ocupa a linha toda */
 }
 
-/* Grade de Cards */
+/* <<< AJUSTES DO CHECKBOX ADICIONADOS AQUI >>> */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    height: 100%;
+}
+.checkbox-group label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#add-restaurant-form input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--color-primary);
+}
+
+/* --- Barra de Ferramentas (Busca e Filtro) --- */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: var(--bg-elements);
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.search-wrapper {
+    position: relative;
+    flex-grow: 1;
+    min-width: 250px;
+}
+.search-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+#search-input {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+}
+#search-input:focus {
+    border-color: var(--color-primary);
+    outline: none;
+}
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sort-wrapper label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+#sort-select {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 15px;
+    background-color: var(--bg-main);
+}
+
+/* --- Grade de Cards --- */
 #restaurantes-lista {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -156,7 +229,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .card-footer .social-link { color: #E1306C; font-size: 24px; }
 .card-footer .actions button { background: none; border: none; font-size: 18px; color: var(--text-secondary); cursor: pointer; }
 
-/* Estilos de Edição e Toggles */
+/* --- Estilos de Edição e Toggles --- */
 .editable { cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background-color 0.2s; }
 .editable:hover { background-color: #f0ebe4; }
 .editable input { width: 100%; font-family: 'Poppins', sans-serif; font-size: 15px; border: 1px solid var(--color-primary); outline: none; border-radius: 4px; padding: 5px; }
@@ -171,16 +244,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 .toggle[data-value="true"] { background-color: #d4edda; color: #155724; }
 .toggle[data-value="false"] { background-color: #f8d7da; color: #721c24; }
 
-/* Responsividade */
-@media (max-width: 600px) {
-    .app-container { padding: 15px; }
-    header { flex-direction: column; align-items: flex-start; gap: 15px; }
-    #restaurantes-lista { grid-template-columns: 1fr; }
-}
-
-/* Adicione este código no final do seu style.css */
-
-/* Estilos para o Modal da Galeria */
+/* --- Estilos para o Modal da Galeria --- */
 .hidden { display: none !important; }
 
 #gallery-modal-overlay {
@@ -196,7 +260,6 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     z-index: 1000;
     padding: 20px;
 }
-
 #gallery-modal-content {
     background: var(--bg-elements);
     padding: 30px;
@@ -207,136 +270,24 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     max-height: 90vh;
     overflow-y: auto;
 }
-
 #gallery-modal-content h2 { margin-bottom: 20px; }
 #gallery-modal-content hr { margin: 20px 0; border: none; border-top: 1px solid var(--border-color); }
-
 #gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 15px;
     margin-bottom: 20px;
-    min-height: 100px; /* Garante espaço mesmo quando vazio */
+    min-height: 100px;
 }
-
 #gallery-grid img {
     width: 100%;
     height: 150px;
     object-fit: cover;
     border-radius: 8px;
 }
-
-#upload-photo-form {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-#upload-photo-form input[type="file"] {
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    border-radius: 8px;
-    flex-grow: 1;
-}
-
-#upload-photo-form button {
-    background-color: var(--color-primary);
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-}
-
-#upload-status {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
-
-/* Botão de Ver Fotos no Card */
-.btn-fotos {
-    background: none;
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.btn-fotos:hover {
-    background-color: var(--bg-main);
-    color: var(--color-primary);
-}
-
-/* Adicione este código no final do seu style.css */
-
-/* --- Barra de Ferramentas (Busca e Filtro) --- */
-.toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background-color: var(--bg-elements);
-    border-radius: 12px;
-    margin-bottom: 30px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.03);
-    flex-wrap: wrap; /* Para responsividade */
-    gap: 20px;
-}
-
-.search-wrapper {
-    position: relative;
-    flex-grow: 1; /* Faz a busca ocupar mais espaço */
-    min-width: 250px;
-}
-
-.search-wrapper i {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-}
-
-#search-input {
-    width: 100%;
-    padding: 12px 12px 12px 45px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 15px;
-}
-#search-input:focus {
-    border-color: var(--color-primary);
-    outline: none;
-}
-
-.sort-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.sort-wrapper label {
-    font-weight: 500;
-    color: var(--text-secondary);
-}
-
-#sort-select {
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 15px;
-    background-color: var(--bg-main);
-}
-
-/* Adicione este código no final do seu style.css */
-
 .gallery-photo-wrapper {
     position: relative;
 }
-
 .delete-photo-btn {
     position: absolute;
     top: 5px;
@@ -355,7 +306,52 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     opacity: 0;
     transition: opacity 0.2s;
 }
-
 .gallery-photo-wrapper:hover .delete-photo-btn {
     opacity: 1;
+}
+#upload-photo-form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+#upload-photo-form input[type="file"] {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 8px;
+    flex-grow: 1;
+}
+#upload-photo-form button {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+#upload-status {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.btn-fotos {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+.btn-fotos:hover {
+    background-color: var(--bg-main);
+    color: var(--color-primary);
+}
+
+/* --- Responsividade --- */
+@media (max-width: 600px) {
+    .app-container { padding: 15px; }
+    header { flex-direction: column; align-items: flex-start; gap: 15px; }
+    #restaurantes-lista { grid-template-columns: 1fr; }
+    .toolbar { flex-direction: column; align-items: stretch; }
 }
