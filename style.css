@@ -330,3 +330,32 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     font-size: 15px;
     background-color: var(--bg-main);
 }
+
+/* Adicione este código no final do seu style.css */
+
+.gallery-photo-wrapper {
+    position: relative;
+}
+
+.delete-photo-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.gallery-photo-wrapper:hover .delete-photo-btn {
+    opacity: 1;
+}
