@@ -1,8 +1,8 @@
 // =================================================================================
 // CONFIGURAÇÃO DO SUPABASE
 // =================================================================================
-const SUPABASE_URL = 'SUA_URL_AQUI';       // Cole sua URL aqui
-const SUPABASE_ANON_KEY = 'SUA_CHAVE_PUBLISHABLE_AQUI'; // Cole sua Publishable Key aqui
+const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';       // Cole sua URL aqui
+const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j'; // Cole sua Publishable Key aqui
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
