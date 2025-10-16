@@ -403,3 +403,29 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     #restaurantes-lista { grid-template-columns: 1fr; }
     .toolbar { flex-direction: column; align-items: stretch; }
 }
+
+/* Botão 'X' do modal da galeria */
+#close-gallery-modal-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: #f1f1f1;
+    color: var(--text-secondary);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+#close-gallery-modal-btn:hover {
+    background-color: #e2e2e2;
+    color: var(--text-primary);
+}
