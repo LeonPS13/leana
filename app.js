@@ -1,8 +1,8 @@
 // =================================================================================
 // CONFIGURAÇÃO DO SUPABASE
 // =================================================================================
-const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';       // Cole sua URL aqui
-const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j'; // Cole sua Publishable Key aqui
+const SUPABASE_URL = 'SUA_URL_AQUI';       // Cole sua URL aqui
+const SUPABASE_ANON_KEY = 'SUA_CHAVE_PUBLISHABLE_AQUI'; // Cole sua Publishable Key aqui
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -155,13 +155,37 @@ async function setupMainPage() {
             const fieldKey = event.target.dataset.field;
             const input = document.createElement('input');
             input.type = (fieldKey === 'nota') ? 'number' : 'text';
+
+            // <<< MUDANÇA 1: Adiciona atributos min, max e step para a nota >>>
+            if (fieldKey === 'nota') {
+                input.min = 0;
+                input.max = 10;
+                input.step = 0.5; // Permite notas como 8.5
+            }
+
             input.value = originalValue === 'N/A' || originalValue === 'Não informado' ? '' : originalValue;
             event.target.innerHTML = '';
             event.target.appendChild(input);
             input.focus();
+
             const saveAndExit = () => {
-                const newValue = input.value;
-                if (newValue !== originalValue) {
+                let newValue = input.value;
+
+                // <<< MUDANÇA 2: Adiciona a camada de segurança para a nota >>>
+                if (fieldKey === 'nota') {
+                    const numericValue = parseFloat(newValue);
+                    if (isNaN(numericValue) || newValue.trim() === '') {
+                        newValue = null; // Salva como nulo se não for um número ou estiver vazio
+                    } else if (numericValue > 10) {
+                        newValue = 10; // Se for maior que 10, salva como 10
+                    } else if (numericValue < 0) {
+                        newValue = 0; // Se for menor que 0, salva como 0
+                    } else {
+                        newValue = numericValue; // Garante que é um número
+                    }
+                }
+
+                if (String(newValue) !== originalValue) {
                     saveUpdate(restaurantName, fieldKey, newValue);
                 } else {
                     event.target.innerHTML = originalValue;
@@ -188,7 +212,7 @@ async function setupMainPage() {
 
     function abrirModalDeFotos(restaurantName) {
         galleryModalContent.dataset.currentRestaurant = restaurantName;
-        galleryRestaurantName.textContent = restaurantName; // Título corrigido
+        galleryRestaurantName.textContent = restaurantName;
         uploadStatus.textContent = '';
         uploadPhotoForm.reset();
         const cardElement = document.querySelector(`.restaurante-card[data-id="${restaurantName}"]`);
