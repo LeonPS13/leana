@@ -188,7 +188,7 @@ async function setupMainPage() {
 
     function abrirModalDeFotos(restaurantName) {
         galleryModalContent.dataset.currentRestaurant = restaurantName;
-        galleryRestaurantName.textContent = `Fotos de: ${restaurantName}`;
+        galleryRestaurantName.textContent = restaurantName; // Título corrigido
         uploadStatus.textContent = '';
         uploadPhotoForm.reset();
         const cardElement = document.querySelector(`.restaurante-card[data-id="${restaurantName}"]`);
@@ -226,14 +226,23 @@ async function setupMainPage() {
                 const filePath = decodeURIComponent(url.pathname.split('/fotos-restaurantes/')[1]);
                 const { error: removeError } = await supabase.storage.from('fotos-restaurantes').remove([filePath]);
                 if (removeError) throw removeError;
+                
                 const restaurantToUpdate = allRestaurants.find(r => r[columnMap.nome] === restaurantName);
                 const currentPhotos = restaurantToUpdate.fotos || [];
                 const updatedPhotos = currentPhotos.filter(url => url !== photoUrlToDelete);
+                
                 const { error: updateError } = await supabase.from('restaurantes').update({ fotos: updatedPhotos }).eq('Nome do Restaurante', restaurantName);
                 if (updateError) throw updateError;
-                restaurantToUpdate.fotos = updatedPhotos; // Atualiza a lista local
-                abrirModalDeFotos(restaurantName); // Reabre o modal com a lista atualizada
-                renderCards(); // Redesenha os cards para atualizar o status do botão de fotos
+                
+                restaurantToUpdate.fotos = updatedPhotos;
+                
+                deleteButton.parentElement.remove();
+                if (galleryGrid.children.length === 0) {
+                    galleryGrid.innerHTML = '<p>Nenhuma foto adicionada ainda.</p>';
+                }
+
+                renderCards();
+
             } catch (error) {
                 console.error('Erro ao deletar a foto:', error);
                 alert('Não foi possível deletar a foto.');
@@ -255,13 +264,15 @@ async function setupMainPage() {
             if (uploadError) throw uploadError;
             const { data: urlData } = supabase.storage.from('fotos-restaurantes').getPublicUrl(filePath);
             const newPhotoUrl = urlData.publicUrl;
+
             const restaurantToUpdate = allRestaurants.find(r => r[columnMap.nome] === restaurantName);
             const existingPhotos = restaurantToUpdate.fotos || [];
             const updatedPhotos = [...existingPhotos, newPhotoUrl];
+
             const { error: updateError } = await supabase.from('restaurantes').update({ fotos: updatedPhotos }).eq('Nome do Restaurante', restaurantName);
             if (updateError) throw updateError;
             
-            restaurantToUpdate.fotos = updatedPhotos; // Atualiza a lista local
+            restaurantToUpdate.fotos = updatedPhotos;
 
             if (galleryGrid.querySelector('p')) galleryGrid.innerHTML = '';
             const wrapper = document.createElement('div');
@@ -276,7 +287,7 @@ async function setupMainPage() {
             wrapper.appendChild(deleteBtn);
             galleryGrid.appendChild(wrapper);
 
-            renderCards(); // Redesenha os cards para atualizar o status do botão de fotos
+            renderCards();
             uploadStatus.textContent = 'Foto enviada com sucesso!';
             uploadPhotoForm.reset();
         } catch (error) {
@@ -290,15 +301,41 @@ async function setupMainPage() {
     function closeLightbox() { lightboxOverlay.classList.add('hidden'); }
 
     closeGalleryModalBtn.addEventListener('click', fecharModalDeFotos);
+    galleryModalOverlay.addEventListener('click', (event) => { if (event.target === galleryModalOverlay) { fecharModalDeFotos(); } });
+
     lightboxCloseBtn.addEventListener('click', closeLightbox);
     lightboxOverlay.addEventListener('click', (event) => { if (event.target === lightboxOverlay) { closeLightbox(); } });
 
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (!galleryModalOverlay.classList.contains('hidden')) fecharModalDeFotos();
+            if (!lightboxOverlay.classList.contains('hidden')) closeLightbox();
+        }
+    });
+
     addRestaurantForm.addEventListener('submit', async (event) => {
-        // ... código sem alteração
+        event.preventDefault();
+        const formData = {
+            [columnMap.nome]: document.getElementById('res-nome').value,
+            [columnMap.tipo_cozinha]: document.getElementById('res-cozinha').value,
+            [columnMap.faixa_preco]: document.getElementById('res-preco').value,
+            [columnMap.localizacao]: document.getElementById('res-localizacao').value,
+            [columnMap.instagram]: document.getElementById('res-instagram').value,
+            [columnMap.aceita_vr]: document.getElementById('res-vr').checked,
+        };
+        const { error } = await supabase.from('restaurantes').insert(formData);
+        if (error) {
+            console.error('Erro ao adicionar:', error);
+        } else {
+            addRestaurantForm.reset();
+            addRestaurantForm.parentElement.removeAttribute('open');
+            fetchAndDisplayRestaurantes();
+        }
     });
 
     document.getElementById('logout-button').addEventListener('click', async () => {
-        // ... código sem alteração
+        await supabase.auth.signOut();
+        window.location.href = 'login.html';
     });
     
     searchInput.addEventListener('input', renderCards);
