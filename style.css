@@ -128,10 +128,8 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     cursor: pointer;
     font-weight: 600;
     border: none;
-    grid-column: 1 / -1; /* Botão ocupa a linha toda */
+    grid-column: 1 / -1;
 }
-
-/* <<< AJUSTES DO CHECKBOX ADICIONADOS AQUI >>> */
 .checkbox-group {
     display: flex;
     align-items: center;
@@ -284,6 +282,7 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     height: 150px;
     object-fit: cover;
     border-radius: 8px;
+    cursor: pointer;
 }
 .gallery-photo-wrapper {
     position: relative;
@@ -347,16 +346,6 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     background-color: var(--bg-main);
     color: var(--color-primary);
 }
-
-/* --- Responsividade --- */
-@media (max-width: 600px) {
-    .app-container { padding: 15px; }
-    header { flex-direction: column; align-items: flex-start; gap: 15px; }
-    #restaurantes-lista { grid-template-columns: 1fr; }
-    .toolbar { flex-direction: column; align-items: stretch; }
-}
-
-/* Estilo para o botão 'Fotos' quando houver imagens */
 .btn-fotos.btn-fotos-active {
     background-color: var(--color-primary);
     color: white;
@@ -364,7 +353,8 @@ header { display: flex; justify-content: space-between; align-items: center; mar
 }
 
 /* --- Estilos para o Modal de Lightbox (Foto Ampliada) --- */
-.lightbox-overlay {
+/* <<< CORREÇÃO APLICADA AQUI: SELETORES DE ID (#) EM VEZ DE CLASSE (.) >>> */
+#lightbox-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -374,24 +364,21 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1001; /* Fica acima do modal da galeria */
+    z-index: 1001;
     padding: 20px;
     cursor: pointer;
 }
-
-.lightbox-content {
+#lightbox-content {
     position: relative;
     max-width: 90vw;
     max-height: 90vh;
 }
-
-.lightbox-image {
+#lightbox-image {
     width: 100%;
     height: 100%;
-    object-fit: contain; /* Garante que a imagem caiba na tela sem distorcer */
+    object-fit: contain;
 }
-
-.lightbox-close-btn {
+#lightbox-close-btn {
     position: absolute;
     top: -40px;
     right: 0;
@@ -400,4 +387,13 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     color: white;
     font-size: 32px;
     cursor: pointer;
+}
+
+
+/* --- Responsividade --- */
+@media (max-width: 600px) {
+    .app-container { padding: 15px; }
+    header { flex-direction: column; align-items: flex-start; gap: 15px; }
+    #restaurantes-lista { grid-template-columns: 1fr; }
+    .toolbar { flex-direction: column; align-items: stretch; }
 }
