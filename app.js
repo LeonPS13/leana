@@ -127,79 +127,7 @@ async function setupMainPage() {
             }
         }
 
-    function renderCards() {
-        const searchTerm = (searchInput.value || '').toLowerCase();
-        const sortOption = sortSelect.value;
-
-        let processed = [...allRestaurants].filter(res => {
-            const nome = res[columnMap.nome] || '';
-            return nome.toLowerCase().includes(searchTerm);
-        });
-
-        // Ordenação
-        if (sortOption === 'alfabetica') {
-            processed.sort((a, b) => (a[columnMap.nome] || '').localeCompare(b[columnMap.nome] || ''));
-        } else if (sortOption === 'cozinha') {
-            processed.sort((a, b) => (a[columnMap.tipo_cozinha] || '').localeCompare(b[columnMap.tipo_cozinha] || ''));
-        } else if (sortOption === 'visitados') {
-            processed.sort((a, b) => (b[columnMap.visitado] === true ? 1 : 0) - (a[columnMap.visitado] === true ? 1 : 0));
-        }
-
-        restaurantesLista.innerHTML = '';
-        if (processed.length === 0) {
-            restaurantesLista.innerHTML = '<p>Nenhum restaurante encontrado.</p>';
-            return;
-        }
-
-        processed.forEach(res => {
-            const hasPhotos = res.fotos && res.fotos.length > 0;
-            const card = document.createElement('div');
-            // Dentro do processed.forEach(res => { ... })
-            const isNaFila = res[columnMap.na_fila] === true;
-            
-            card.className = `restaurante-card ${isNaFila ? 'card-na-fila' : ''}`;
-            card.innerHTML = `
-                <div class="card-header">
-                    <h3 class="editable" data-field="nome">${res[columnMap.nome] || 'Sem nome'}</h3>
-                    <button class="btn-delete" title="Excluir Restaurante"><i class="fa-solid fa-trash"></i></button>
-                </div>
-                <div class="card-body">
-                    <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${res[columnMap.tipo_cozinha] || '---'}</span></p>
-                    <p><i class="fa-solid fa-star"></i> <span class="editable" data-field="nota">${res[columnMap.nota] || 'N/A'}</span></p>
-                </div>
-                <div class="card-footer">
-                    <button class="btn-queue ${isNaFila ? 'active' : ''}" data-id="${res.id}">
-                        <i class="fa-solid fa-list-ol"></i> ${isNaFila ? 'NA FILA' : 'POR NA FILA'}
-                    </button>
-                    <span class="toggle" data-field="visitado" data-value="${res[columnMap.visitado]}">
-                        ${res[columnMap.visitado] ? '✅ Já Fomos' : '⏳ Pendente'}
-                    </span>
-                    <button class="btn-fotos ${hasPhotos ? 'btn-fotos-active' : ''}"><i class="fa-solid fa-camera"></i></button>
-                </div>
-            `;
-            
-            card.className = 'restaurante-card';
-            card.dataset.id = res.id; // Importante: usar ID para updates
-
-            card.innerHTML = `
-                <div class="card-header"><h3 class="editable" data-field="nome">${res[columnMap.nome] || 'Sem nome'}</h3></div>
-                <div class="card-body">
-                    <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${res[columnMap.tipo_cozinha] || '---'}</span></p>
-                    <p><i class="fa-solid fa-star"></i> <span class="editable" data-field="nota">${res[columnMap.nota] || 'N/A'}</span></p>
-                    <p><i class="fa-solid fa-map-marker-alt"></i> <span class="editable" data-field="localizacao">${res[columnMap.localizacao] || '---'}</span></p>
-                </div>
-                <div class="card-footer">
-                    <span class="toggle" data-field="visitado" data-value="${res[columnMap.visitado]}">
-                        ${res[columnMap.visitado] ? '✅ Já Fomos' : '⏳ Pendente'}
-                    </span>
-                    <button class="btn-fotos ${hasPhotos ? 'btn-fotos-active' : ''}"><i class="fa-solid fa-camera"></i> Fotos</button>
-                    <a href="${res[columnMap.instagram] || '#'}" target="_blank" class="social-link"><i class="fa-brands fa-instagram"></i></a>
-                </div>
-            `;
-            restaurantesLista.appendChild(card);
-        });
-    }
-
+    
     // --- FUNÇÕES DE BANCO DE DADOS ---
 
     async function fetchAndDisplayRestaurantes() {
@@ -223,6 +151,65 @@ async function setupMainPage() {
             if (res) res[columnName] = value;
             renderCards();
         }
+    }
+
+    function renderCards() {
+        const searchTerm = (searchInput.value || '').toLowerCase();
+        const sortOption = sortSelect.value;
+    
+        let processed = [...allRestaurants].filter(res => {
+            const nome = res[columnMap.nome] || '';
+            return nome.toLowerCase().includes(searchTerm);
+        });
+    
+        // Ordenação
+        if (sortOption === 'alfabetica') {
+            processed.sort((a, b) => (a[columnMap.nome] || '').localeCompare(b[columnMap.nome] || ''));
+        } else if (sortOption === 'cozinha') {
+            processed.sort((a, b) => (a[columnMap.tipo_cozinha] || '').localeCompare(b[columnMap.tipo_cozinha] || ''));
+        } else if (sortOption === 'visitados') {
+            processed.sort((a, b) => (b[columnMap.visitado] === true ? 1 : 0) - (a[columnMap.visitado] === true ? 1 : 0));
+        }
+    
+        restaurantesLista.innerHTML = '';
+        if (processed.length === 0) {
+            restaurantesLista.innerHTML = '<p>Nenhum restaurante encontrado.</p>';
+            return;
+        }
+    
+        processed.forEach(res => {
+            const hasPhotos = res.fotos && res.fotos.length > 0;
+            const isNaFila = res[columnMap.na_fila] === true;
+    
+            const card = document.createElement('div');
+            // Define a classe uma única vez com a lógica da fila
+            card.className = `restaurante-card ${isNaFila ? 'card-na-fila' : ''}`;
+            card.dataset.id = res.id;
+    
+            // Define o HTML uma única vez com TODOS os botões
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="editable" data-field="nome">${res[columnMap.nome] || 'Sem nome'}</h3>
+                    <button class="btn-delete" title="Excluir Restaurante"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="card-body">
+                    <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${res[columnMap.tipo_cozinha] || '---'}</span></p>
+                    <p><i class="fa-solid fa-star"></i> <span class="editable" data-field="nota">${res[columnMap.nota] || 'N/A'}</span></p>
+                    <p><i class="fa-solid fa-map-marker-alt"></i> <span class="editable" data-field="localizacao">${res[columnMap.localizacao] || '---'}</span></p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-queue ${isNaFila ? 'active' : ''}" data-id="${res.id}">
+                        <i class="fa-solid fa-list-ol"></i> ${isNaFila ? 'NA FILA' : 'POR NA FILA'}
+                    </button>
+                    <span class="toggle" data-field="visitado" data-value="${res[columnMap.visitado]}">
+                        ${res[columnMap.visitado] ? '✅ Já Fomos' : '⏳ Pendente'}
+                    </span>
+                    <button class="btn-fotos ${hasPhotos ? 'btn-fotos-active' : ''}"><i class="fa-solid fa-camera"></i></button>
+                    <a href="${res[columnMap.instagram] || '#'}" target="_blank" class="social-link"><i class="fa-brands fa-instagram"></i></a>
+                </div>
+            `;
+            restaurantesLista.appendChild(card);
+        });
     }
 
     // --- INTERAÇÕES DO USUÁRIO ---
