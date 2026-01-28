@@ -83,10 +83,49 @@ async function setupMainPage() {
         visitado: 'Já visitou?',
         instagram: 'Instagram',
         aceita_vr: 'Aceita VR',
-        fotos: 'fotos'
+        fotos: 'fotos',
+        na_fila: 'na_fila'
     };
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
+
+            // --- FUNÇÃO PARA EXCLUIR ---
+        async function deleteRestaurant(id) {
+            if (!confirm('Tens a certeza que queres apagar este restaurante da lista?')) return;
+        
+            const { error } = await supabaseClient.from('restaurantes').delete().eq('id', id);
+            
+            if (error) {
+                alert('Erro ao apagar: ' + error.message);
+            } else {
+                allRestaurants = allRestaurants.filter(r => r.id != id);
+                renderCards();
+            }
+        }
+        
+        // --- FUNÇÃO PARA A FILA (MÁXIMO 5) ---
+        async function toggleQueue(id) {
+            const res = allRestaurants.find(r => r.id == id);
+            const naFilaAtual = allRestaurants.filter(r => r[columnMap.na_fila] === true);
+        
+            // Se ele NÃO está na fila e tentamos adicionar
+            if (!res[columnMap.na_fila] && naFilaAtual.length >= 5) {
+                alert('🚨 Calma! A fila já tem 5 favoritos. Decide um desses primeiro antes de adicionar outro para não aumentar a indecisão!');
+                return;
+            }
+        
+            const novoEstado = !res[columnMap.na_fila];
+            const { error } = await supabaseClient.from('restaurantes')
+                .update({ [columnMap.na_fila]: novoEstado })
+                .eq('id', id);
+        
+            if (error) {
+                alert('Erro ao atualizar fila.');
+            } else {
+                res[columnMap.na_fila] = novoEstado;
+                renderCards();
+            }
+        }
 
     function renderCards() {
         const searchTerm = (searchInput.value || '').toLowerCase();
@@ -115,6 +154,30 @@ async function setupMainPage() {
         processed.forEach(res => {
             const hasPhotos = res.fotos && res.fotos.length > 0;
             const card = document.createElement('div');
+            // Dentro do processed.forEach(res => { ... })
+            const isNaFila = res[columnMap.na_fila] === true;
+            
+            card.className = `restaurante-card ${isNaFila ? 'card-na-fila' : ''}`;
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="editable" data-field="nome">${res[columnMap.nome] || 'Sem nome'}</h3>
+                    <button class="btn-delete" title="Excluir Restaurante"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div class="card-body">
+                    <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${res[columnMap.tipo_cozinha] || '---'}</span></p>
+                    <p><i class="fa-solid fa-star"></i> <span class="editable" data-field="nota">${res[columnMap.nota] || 'N/A'}</span></p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn-queue ${isNaFila ? 'active' : ''}" data-id="${res.id}">
+                        <i class="fa-solid fa-list-ol"></i> ${isNaFila ? 'NA FILA' : 'POR NA FILA'}
+                    </button>
+                    <span class="toggle" data-field="visitado" data-value="${res[columnMap.visitado]}">
+                        ${res[columnMap.visitado] ? '✅ Já Fomos' : '⏳ Pendente'}
+                    </span>
+                    <button class="btn-fotos ${hasPhotos ? 'btn-fotos-active' : ''}"><i class="fa-solid fa-camera"></i></button>
+                </div>
+            `;
+            
             card.className = 'restaurante-card';
             card.dataset.id = res.id; // Importante: usar ID para updates
 
@@ -169,17 +232,25 @@ async function setupMainPage() {
         if (!card) return;
         const id = card.dataset.id;
         const res = allRestaurants.find(r => r.id == id);
+        // 1. Botão de Apagar
+        if (e.target.closest('.btn-delete')) {
+            deleteRestaurant(id);
+        } 
+        // 2. Botão Na Fila
+        else if (e.target.closest('.btn-queue')) {
+            toggleQueue(id);
+        }
 
-        // 1. Botão de Fotos
+        // 3. Botão de Fotos
         if (e.target.closest('.btn-fotos')) {
             abrirModalDeFotos(res);
         } 
-        // 2. Toggle Visitado
+        // 4. Toggle Visitado
         else if (e.target.classList.contains('toggle')) {
             const current = e.target.dataset.value === 'true';
             saveUpdate(id, 'visitado', !current);
         }
-        // 3. Edição Inline
+        // 5. Edição Inline
         else if (e.target.classList.contains('editable')) {
             handleInlineEdit(e.target, id);
         }
