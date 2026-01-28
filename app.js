@@ -1,5 +1,5 @@
 // =================================================================================
-// CONFIGURAÇÃO GLOBAL
+// 1. CONFIGURAÇÃO E ESTADO GLOBAL
 // =================================================================================
 const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j';
@@ -20,7 +20,7 @@ const columnMap = {
 let allRestaurants = [];
 
 // =================================================================================
-// ROTEADOR
+// 2. ROTEADOR
 // =================================================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (document.body.classList.contains('login-page')) setupLoginPage();
@@ -41,7 +41,7 @@ function setupLoginPage() {
 }
 
 // =================================================================================
-// LÓGICA DO APP
+// 3. LÓGICA PRINCIPAL (APP)
 // =================================================================================
 async function setupMainPage() {
     const { data: { session } } = await supabaseClient.auth.getSession();
@@ -51,7 +51,7 @@ async function setupMainPage() {
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
 
-    // --- RENDERIZAÇÃO ---
+    // --- RENDERIZAÇÃO DOS CARDS ---
     function renderCards() {
         const searchTerm = (searchInput.value || '').toLowerCase();
         const sortOption = sortSelect.value;
@@ -60,7 +60,7 @@ async function setupMainPage() {
             (res[columnMap.nome] || '').toLowerCase().includes(searchTerm)
         );
 
-        // Ordenação
+        // Lógica de Ordenação
         processed.sort((a, b) => {
             if (sortOption === 'alfabetica') return (a[columnMap.nome] || '').localeCompare(b[columnMap.nome] || '');
             if (sortOption === 'visitados') return (b[columnMap.visitado] ? 1 : 0) - (a[columnMap.visitado] ? 1 : 0);
@@ -71,19 +71,19 @@ async function setupMainPage() {
         restaurantesLista.innerHTML = '';
         processed.forEach(res => {
             const isNaFila = res[columnMap.na_fila] === true;
-            const nomeId = res[columnMap.nome];
+            const nomePK = res[columnMap.nome];
             
-            // Lógica para nota vazia/null
+            // Tratamento da Nota
             const notaOriginal = res[columnMap.nota];
             const notaExibicao = (notaOriginal === null || notaOriginal === '') ? 'Sem Avaliação' : notaOriginal;
 
             const card = document.createElement('div');
             card.className = `restaurante-card ${isNaFila ? 'card-na-fila' : ''}`;
-            card.dataset.id = nomeId;
+            card.dataset.id = nomePK;
 
             card.innerHTML = `
                 <div class="card-header">
-                    <h3 class="editable" data-field="nome">${nomeId}</h3>
+                    <h3 class="editable" data-field="nome">${nomePK}</h3>
                     <button class="btn-delete" title="Excluir"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="card-body">
@@ -98,46 +98,53 @@ async function setupMainPage() {
                     <span class="toggle" data-field="visitado" data-value="${res[columnMap.visitado]}">
                         ${res[columnMap.visitado] ? '✅ Já Fomos' : '⏳ Pendente'}
                     </span>
-                    <button class="btn-fotos"><i class="fa-solid fa-camera"></i></button>
+                    <div class="actions">
+                        <button class="btn-fotos" title="Fotos"><i class="fa-solid fa-camera"></i></button>
+                        <a href="${res[columnMap.instagram] || '#'}" target="_blank" class="social-link" title="Instagram">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                    </div>
                 </div>
             `;
             restaurantesLista.appendChild(card);
         });
     }
 
-    // --- OPERAÇÕES NO BANCO ---
-    async function saveUpdate(nomeId, fieldKey, value) {
+    // --- FUNÇÕES DE BANCO ---
+    async function saveUpdate(nomePK, fieldKey, value) {
         const { error } = await supabaseClient.from('restaurantes')
             .update({ [columnMap[fieldKey]]: value })
-            .eq('Nome do Restaurante', nomeId);
+            .eq('Nome do Restaurante', nomePK);
         if (!error) {
-            const res = allRestaurants.find(r => r[columnMap.nome] === nomeId);
+            const res = allRestaurants.find(r => r[columnMap.nome] === nomePK);
             if (res) res[columnMap[fieldKey]] = value;
             renderCards();
+        } else {
+            alert("Erro ao atualizar banco.");
         }
     }
 
-    async function toggleQueue(nomeId) {
-        const res = allRestaurants.find(r => r[columnMap.nome] === nomeId);
+    async function toggleQueue(nomePK) {
+        const res = allRestaurants.find(r => r[columnMap.nome] === nomePK);
         const naFilaCount = allRestaurants.filter(r => r[columnMap.na_fila] === true).length;
         if (!res[columnMap.na_fila] && naFilaCount >= 5) {
-            alert('A fila já está cheia (máx 5)!');
+            alert('A fila já tem 5 favoritos! Resolva um antes de adicionar outro.');
             return;
         }
-        await saveUpdate(nomeId, 'na_fila', !res[columnMap.na_fila]);
+        await saveUpdate(nomePK, 'na_fila', !res[columnMap.na_fila]);
     }
 
-    async function deleteRestaurant(nomeId) {
-        if (!confirm(`Excluir "${nomeId}"?`)) return;
-        const { error } = await supabaseClient.from('restaurantes').delete().eq('Nome do Restaurante', nomeId);
+    async function deleteRestaurant(nomePK) {
+        if (!confirm(`Excluir definitivamente "${nomePK}"?`)) return;
+        const { error } = await supabaseClient.from('restaurantes').delete().eq('Nome do Restaurante', nomePK);
         if (!error) {
-            allRestaurants = allRestaurants.filter(r => r[columnMap.nome] !== nomeId);
+            allRestaurants = allRestaurants.filter(r => r[columnMap.nome] !== nomePK);
             renderCards();
         }
     }
 
     // --- EDIÇÃO INLINE ---
-    function handleInlineEdit(element, nomeId) {
+    function handleInlineEdit(element, nomePK) {
         if (element.querySelector('input')) return;
         const field = element.dataset.field;
         const originalValue = element.textContent;
@@ -146,8 +153,9 @@ async function setupMainPage() {
         input.type = field === 'nota' ? 'number' : 'text';
         if (field === 'nota') { input.min = 0; input.max = 10; input.step = 0.5; }
         
-        // Se estiver "Sem Avaliação", o input começa vazio
-        input.value = (originalValue === 'Sem Avaliação' || originalValue === '---' || originalValue === 'Endereço não informado') ? '' : originalValue;
+        // Limpa o input se for um valor padrão de "vazio"
+        const isPlaceholder = ['Sem Avaliação', '---', 'Endereço não informado'].includes(originalValue);
+        input.value = isPlaceholder ? '' : originalValue;
         
         element.innerHTML = '';
         element.appendChild(input);
@@ -155,11 +163,10 @@ async function setupMainPage() {
 
         const finish = () => {
             let val = input.value;
-            if (field === 'nota') {
-                val = val === '' ? null : Math.min(10, Math.max(0, parseFloat(val)));
-            }
-            if (String(val) !== originalValue) saveUpdate(nomeId, field, val);
-            else renderCards(); // Recarrega para voltar o texto original formatado
+            if (field === 'nota') val = val === '' ? null : Math.min(10, Math.max(0, parseFloat(val)));
+            
+            if (String(val) !== originalValue) saveUpdate(nomePK, field, val);
+            else renderCards(); 
         };
 
         input.onblur = finish;
@@ -170,14 +177,16 @@ async function setupMainPage() {
     restaurantesLista.addEventListener('click', (e) => {
         const card = e.target.closest('.restaurante-card');
         if (!card) return;
-        const nomeId = card.dataset.id;
+        const nomePK = card.dataset.id;
 
-        if (e.target.closest('.btn-delete')) deleteRestaurant(nomeId);
-        else if (e.target.closest('.btn-queue')) toggleQueue(nomeId);
+        if (e.target.closest('.btn-delete')) deleteRestaurant(nomePK);
+        else if (e.target.closest('.btn-queue')) toggleQueue(nomePK);
         else if (e.target.classList.contains('toggle')) {
-            saveUpdate(nomeId, e.target.dataset.field, e.target.dataset.value !== 'true');
+            const field = e.target.dataset.field;
+            const current = e.target.dataset.value === 'true';
+            saveUpdate(nomePK, field, !current);
         } else if (e.target.classList.contains('editable')) {
-            handleInlineEdit(e.target, nomeId);
+            handleInlineEdit(e.target, nomePK);
         }
     });
 
