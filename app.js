@@ -1,10 +1,13 @@
 // =================================================================================
 // CONFIGURAÇÃO DO SUPABASE
 // =================================================================================
-const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j';
-
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (typeof supabase === 'undefined') {
+    const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j';
+    
+    // Note que aqui não usamos 'const' novamente se a variável for global
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
 // =================================================================================
 // ROTEADOR DE PÁGINA
