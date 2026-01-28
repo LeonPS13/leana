@@ -1,13 +1,13 @@
 // =================================================================================
-// 1. CONFIGURAÇÃO GLOBAL E CONEXÃO
+// 1. CONFIGURAÇÃO GLOBAL
 // =================================================================================
-const SB_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';
-const SB_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j';
+const SUPABASE_URL = 'https://kyruwsjzyppdwlyxnlon.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_aCvS33rtBCig4H5lG-cvHg_tQHIZE4j';
 
-// Instância única do Supabase
-const supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+// Usamos supabaseClient para evitar conflitos com a biblioteca global
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Mapeamento de colunas (JS -> Banco de Dados)
+// Mapeamento exato das colunas do seu banco de dados
 const columnMap = {
     nome: 'Nome do Restaurante',
     tipo_cozinha: 'Tipo de Cozinha',
@@ -21,11 +21,11 @@ const columnMap = {
     na_fila: 'na_fila' 
 };
 
-// Estado global da aplicação
+// Estado global para armazenar os dados e evitar buscas repetidas
 let allRestaurants = [];
 
 // =================================================================================
-// 2. ROTEADOR
+// 2. ROTEADOR DE PÁGINAS
 // =================================================================================
 document.addEventListener('DOMContentLoaded', () => {
     if (document.body.classList.contains('login-page')) {
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =================================================================================
-// 3. LÓGICA DE LOGIN
+// 3. PÁGINA DE LOGIN
 // =================================================================================
 function setupLoginPage() {
     const loginForm = document.getElementById('login-form');
@@ -57,30 +57,34 @@ function setupLoginPage() {
 }
 
 // =================================================================================
-// 4. LÓGICA DA PÁGINA PRINCIPAL
+// 4. PÁGINA PRINCIPAL (APP)
 // =================================================================================
 async function setupMainPage() {
+    // Proteção de Rota: Se não estiver logado, volta pro login
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
 
-    // Seleção de elementos do DOM
+    // Seleção de Elementos do DOM
     const restaurantesLista = document.getElementById('restaurantes-lista');
     const searchInput = document.getElementById('search-input');
     const sortSelect = document.getElementById('sort-select');
     const addRestaurantForm = document.getElementById('add-restaurant-form');
     
-    // Elementos da Galeria/Modal
+    // Elementos do Modal de Galeria
     const galleryModalOverlay = document.getElementById('gallery-modal-overlay');
-    const galleryModalContent = document.getElementById('gallery-modal-content');
+    const galleryGrid = document.getElementById('gallery-grid');
+    const galleryRestaurantName = document.getElementById('gallery-restaurant-name');
     const uploadPhotoForm = document.getElementById('upload-photo-form');
     const photoInput = document.getElementById('photo-input');
+    const uploadStatus = document.getElementById('upload-status');
 
-    // --- FUNÇÕES DE INTERFACE ---
+    // --- FUNÇÕES DE RENDERIZAÇÃO ---
 
     function renderCards() {
         const searchTerm = (searchInput.value || '').toLowerCase();
         const sortOption = sortSelect.value;
 
+        // Filtro de busca
         let processed = [...allRestaurants].filter(res => 
             (res[columnMap.nome] || '').toLowerCase().includes(searchTerm)
         );
@@ -96,15 +100,16 @@ async function setupMainPage() {
         processed.forEach(res => {
             const isNaFila = res[columnMap.na_fila] === true;
             const hasPhotos = res.fotos && res.fotos.length > 0;
+            const nomePK = res[columnMap.nome]; // Nossa Chave Primária
 
             const card = document.createElement('div');
             card.className = `restaurante-card ${isNaFila ? 'card-na-fila' : ''}`;
-            card.dataset.id = res.id;
+            card.dataset.id = nomePK; // Salva o nome para referência nos cliques
 
             card.innerHTML = `
                 <div class="card-header">
-                    <h3 class="editable" data-field="nome">${res[columnMap.nome] || 'Sem nome'}</h3>
-                    <button class="btn-delete" title="Excluir"><i class="fa-solid fa-trash"></i></button>
+                    <h3 class="editable" data-field="nome">${nomePK || 'Sem nome'}</h3>
+                    <button class="btn-delete" title="Excluir Restaurante"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <div class="card-body">
                     <p><i class="fa-solid fa-kitchen-set"></i> <span class="editable" data-field="tipo_cozinha">${res[columnMap.tipo_cozinha] || '---'}</span></p>
@@ -125,63 +130,121 @@ async function setupMainPage() {
         });
     }
 
-    // --- AÇÕES DO BANCO DE DADOS ---
+    // --- FUNÇÕES DE LÓGICA E BANCO ---
 
-    async function toggleQueue(id) {
-        const res = allRestaurants.find(r => String(r.id) === String(id));
-        const naFilaCount = allRestaurants.filter(r => r[columnMap.na_fila] === true).length;
+    async function toggleQueue(nomeId) {
+        const res = allRestaurants.find(r => r[columnMap.nome] === nomeId);
+        if (!res) return;
 
-        if (!res[columnMap.na_fila] && naFilaCount >= 5) {
-            alert('🚨 Máximo de 5 na fila! Resolva uma pendência antes de adicionar outra.');
+        const countNaFila = allRestaurants.filter(r => r[columnMap.na_fila] === true).length;
+
+        if (!res[columnMap.na_fila] && countNaFila >= 5) {
+            alert('🚨 Já temos 5 restaurantes na fila! Escolha um desses antes de adicionar mais.');
             return;
         }
 
         const novoEstado = !res[columnMap.na_fila];
-        const { error } = await supabaseClient.from('restaurantes').update({ [columnMap.na_fila]: novoEstado }).eq('id', id);
+        const { error } = await supabaseClient.from('restaurantes')
+            .update({ [columnMap.na_fila]: novoEstado })
+            .eq('Nome do Restaurante', nomeId);
 
-        if (!error) { res[columnMap.na_fila] = novoEstado; renderCards(); }
+        if (!error) {
+            res[columnMap.na_fila] = novoEstado;
+            renderCards();
+        }
     }
 
-    async function deleteRestaurant(id) {
-        if (!confirm('Deseja mesmo excluir este restaurante?')) return;
-        const { error } = await supabaseClient.from('restaurantes').delete().eq('id', id);
-        if (!error) { allRestaurants = allRestaurants.filter(r => String(r.id) !== String(id)); renderCards(); }
+    async function deleteRestaurant(nomeId) {
+        if (!confirm(`Deseja mesmo remover "${nomeId}" da lista?`)) return;
+
+        const { error } = await supabaseClient.from('restaurantes')
+            .delete()
+            .eq('Nome do Restaurante', nomeId);
+
+        if (!error) {
+            allRestaurants = allRestaurants.filter(r => r[columnMap.nome] !== nomeId);
+            renderCards();
+        } else {
+            alert('Erro ao excluir do banco.');
+        }
     }
 
-    async function saveUpdate(id, fieldKey, value) {
+    async function saveUpdate(nomeId, fieldKey, value) {
         const columnName = columnMap[fieldKey];
-        const { error } = await supabaseClient.from('restaurantes').update({ [columnName]: value }).eq('id', id);
-        if (!error) { 
-            const res = allRestaurants.find(r => String(r.id) === String(id));
+        const { error } = await supabaseClient.from('restaurantes')
+            .update({ [columnName]: value })
+            .eq('Nome do Restaurante', nomeId);
+
+        if (!error) {
+            const res = allRestaurants.find(r => r[columnMap.nome] === nomeId);
             if (res) res[columnName] = value;
             renderCards();
         }
     }
 
-    // --- EVENTOS ---
-
+    // --- EVENTOS (DELEGAÇÃO DE CLIQUE) ---
+    // 
     restaurantesLista.addEventListener('click', (e) => {
         const card = e.target.closest('.restaurante-card');
         if (!card) return;
-        const id = card.dataset.id;
+        const nomeId = card.dataset.id;
 
-        if (e.target.closest('.btn-delete')) deleteRestaurant(id);
-        else if (e.target.closest('.btn-queue')) toggleQueue(id);
-        else if (e.target.classList.contains('toggle')) {
+        if (e.target.closest('.btn-delete')) {
+            deleteRestaurant(nomeId);
+        } else if (e.target.closest('.btn-queue')) {
+            toggleQueue(nomeId);
+        } else if (e.target.classList.contains('toggle')) {
             const field = e.target.dataset.field;
             const current = e.target.dataset.value === 'true';
-            saveUpdate(id, field, !current);
+            saveUpdate(nomeId, field, !current);
         } else if (e.target.classList.contains('editable')) {
-            handleInlineEdit(e.target, id);
+            handleInlineEdit(e.target, nomeId);
+        } else if (e.target.closest('.btn-fotos')) {
+            abrirModalDeFotos(nomeId);
         }
     });
 
-    // (As funções handleInlineEdit, abrirModalDeFotos e upload permanecem as mesmas de antes, 
-    // apenas garantindo que usem 'supabaseClient' e o id correto).
+    // --- EDIÇÃO INLINE ---
+    function handleInlineEdit(element, nomeId) {
+        if (element.querySelector('input')) return;
+        const field = element.dataset.field;
+        const originalValue = element.textContent;
+        const input = document.createElement('input');
+        
+        input.type = field === 'nota' ? 'number' : 'text';
+        if (field === 'nota') { input.min = 0; input.max = 10; input.step = 0.5; }
+        
+        input.value = (originalValue === 'N/A' || originalValue === '---') ? '' : originalValue;
+        element.innerHTML = '';
+        element.appendChild(input);
+        input.focus();
 
+        const finish = () => {
+            let val = input.value;
+            if (field === 'nota') {
+                val = val === '' ? null : Math.min(10, Math.max(0, parseFloat(val)));
+            }
+            if (String(val) !== originalValue) {
+                saveUpdate(nomeId, field, val);
+            } else {
+                element.innerHTML = originalValue;
+            }
+        };
+
+        input.onblur = finish;
+        input.onkeydown = (e) => { 
+            if (e.key === 'Enter') finish(); 
+            if (e.key === 'Escape') element.innerHTML = originalValue; 
+        };
+    }
+
+    // --- INICIALIZAÇÃO ---
     async function fetchAll() {
         const { data, error } = await supabaseClient.from('restaurantes').select('*');
-        if (!error) { allRestaurants = data || []; renderCards(); }
+        if (!error) {
+            allRestaurants = data || [];
+            renderCards();
+        }
     }
 
     searchInput.oninput = renderCards;
