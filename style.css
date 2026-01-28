@@ -494,3 +494,26 @@ header { display: flex; justify-content: space-between; align-items: center; mar
     border: 2px solid #f1c40f !important;
     background-color: #fffdf0; /* Um fundo levemente amarelado */
 }
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.social-link {
+    color: #e1306c; /* Cor clássica do Instagram */
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.social-link:hover {
+    transform: scale(1.2);
+}
